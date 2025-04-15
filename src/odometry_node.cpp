@@ -23,28 +23,29 @@
 
 using namespace cocolic;
 
-int main(int argc, char **argv) {
-  google::InitGoogleLogging(argv[0]);
+int main(int argc, char **argv)
+{
+    google::InitGoogleLogging(argv[0]);
 
-  ros::init(argc, argv, "cocolic");
-  ros::NodeHandle nh("~");
+    ros::init(argc, argv, "cocolic");
+    ros::NodeHandle nh("~");
 
-  std::string config_path;
-  nh.param<std::string>("config_path", config_path, "ct_odometry.yaml");
-  ROS_INFO("Odometry load %s.", config_path.c_str());
+    std::string config_path;
+    nh.param<std::string>("config_path", config_path, "ct_odometry.yaml");
+    ROS_INFO("Odometry load %s.", config_path.c_str());
 
-  YAML::Node config_node = YAML::LoadFile(config_path);
+    YAML::Node config_node = YAML::LoadFile(config_path);
 
-  std::string log_path = config_node["log_path"].as<std::string>();
-  FLAGS_log_dir = log_path;
-  FLAGS_colorlogtostderr = true;
-  std::cout << "\n🥥 Start Coco-LIC Odometry 🥥";
+    std::string log_path   = config_node["log_path"].as<std::string>();
+    FLAGS_log_dir          = log_path;
+    FLAGS_colorlogtostderr = true;
+    std::cout << "\n🥥 Start Coco-LIC Odometry 🥥";
 
-  OdometryManager odom_manager(config_node, nh);
-  odom_manager.RunBag();
+    OdometryManager odom_manager(config_node, nh);
+    odom_manager.RunBag();
 
-  double t_traj_max = odom_manager.SaveOdometry();
-  std::cout << "\n✨ All Done.\n\n";
+    double t_traj_max = odom_manager.SaveOdometry();
+    std::cout << "\n✨ All Done.\n\n";
 
-  return 0;
+    return 0;
 }

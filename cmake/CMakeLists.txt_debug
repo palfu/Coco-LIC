@@ -1,0 +1,161 @@
+cmake_minimum_required(VERSION 3.0)
+project(parking_fusion)
+set(CMAKE_BUILD_TYPE "Release")
+set(CMAKE_CXX_STANDARD 14)
+# add_definitions(-w)
+add_definitions(-DARCH_X86)
+add_definitions(-D__LINUX__)
+add_compile_options(-std=c++14)
+option(BUILD_WITH_GLOG "build with glog" ON)
+add_definitions(-DBUILD_WITH_GLOG=1)
+# set(CMAKE_CXX_FLAGS "$ENV{CXXFLAGS} -std=c++14 -O3 -g -Wall -fPIC -fopenmp -pthread")
+# set(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -std=c++14 -O3 -Wall -fPIC -fopenmp -pthread")
+set(CMAKE_CXX_FLAGS "$ENV{CXXFLAGS} -std=c++14 -O3 -g -fPIC -fopenmp -pthread")
+set(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -std=c++14 -O3 -fPIC -fopenmp -pthread")
+set(BUILD_UTEST OFF)
+set(BUILD_LCOV OFF)
+if (BUILD_LCOV)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs -ftest-coverage -O0 -lgcov ")
+endif()
+
+
+add_definitions(-DHPF_ADD_EASY_PROFILER=1)
+add_definitions(-DUSING_EASY_PROFILER=1)
+ 
+# get_filename_component(ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR} DIRECTORY)
+include(cmake/sys_arch.cmake)
+include(cmake/find_dependencies.cmake)
+include(cmake/Protobuf.cmake)
+if(NOT DEFINED DEPENDENCIES_PATH)
+    if(EXISTS /dependencies)
+        set(DEPENDENCIES_PATH /dependencies/)
+    else()
+        set(DEPENDENCIES_PATH ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/)
+    endif()
+    message(STATUS "DEPENDENCIES_PATH not set, use default ${DEPENDENCIES_PATH}")
+    message(STATUS "cmake ../  -DDEPENDENCIES_PATH=xxx")
+endif()
+message(STATUS ${DEPENDENCIES_PATH})
+set_dependencies_dir(${DEPENDENCIES_PATH})
+#****************************************************************#
+###########
+## Build ##
+###########
+## Specify additional locations of header files
+## Your package locations should be listed before other locations
+find_dependency_package(comm)
+find_dependency_package(common)
+find_dependency_package(hibag)
+find_dependency_package(ipc)
+find_dependency_package(log)
+find_dependency_package(pos)
+find_dependency_package(rte)
+find_dependency_package(base)
+find_dependency_package(error_relation)
+find_dependency_package(easy_profiler)
+find_dependency_thirdparty(jsoncpp)
+find_dependency_thirdparty(boost)
+find_dependency_thirdparty(pangolin)
+find_dependency_thirdparty(eigen3)
+find_dependency_thirdparty(gtsam)
+find_dependency_thirdparty(pcl)
+find_dependency_thirdparty(gtest)
+find_dependency_thirdparty(opencv)
+find_dependency_thirdparty(ffmpeg)
+find_dependency_thirdparty(bdb)
+find_dependency_thirdparty(zmq)
+find_dependency_thirdparty(protobuf)
+find_dependency_thirdparty(glog)
+find_dependency_thirdparty(gflags)
+find_dependency_thirdparty(class_loader)
+find_dependency_thirdparty(vsomeip)
+include_directories(
+    ${jsoncpp_INCLUDE_DIRS}
+    ${boost_INCLUDE_DIRS}
+    ${gtsam_INCLUDE_DIRS}
+    ${parking_slam_proto_INCLUDE_DIRS}
+    ${pangolin_INCLUDE_DIRS}
+    ${opencv_INCLUDE_DIRS}
+    ${protobuf_INCLUDE_DIRS}
+    ${pcl_INCLUDE_DIRS}
+    ${glog_INCLUDE_DIRS}
+    ${gflags_INCLUDE_DIRS}
+    ${gtest_INCLUDE_DIRS}
+    ${log_INCLUDE_DIRS}
+    ${pos_INCLUDE_DIRS}
+    ${comm_INCLUDE_DIRS}
+    ${hibag_INCLUDE_DIRS}
+    ${ipc_INCLUDE_DIRS}
+    ${base_INCLUDE_DIRS}
+    ${common_INCLUDE_DIRS}
+    ${ffmpeg_INCLUDE_DIRS}
+    ${class_loader_INCLUDE_DIRS}
+    ${CMAKE_SOURCE_DIR}/modules/camera_model/
+    ${CMAKE_SOURCE_DIR}/modules/parking_fusion/
+)
+link_directories(
+    ${jsoncpp_LIB_DIRS}
+    ${boost_LIB_DIRS}
+    ${gtsam_LIB_DIRS}
+    ${parking_slam_proto_LIB_DIRS}
+    ${pangolin_LIB_DIRS}
+    ${opencv_LIB_DIRS}
+    ${protobuf_LIB_DIRS}
+    ${pcl_LIB_DIRS}
+    ${glog_LIB_DIRS}
+    ${gflags_LIB_DIRS}
+    ${gtest_LIB_DIRS}
+    ${log_LIB_DIRS}
+    ${zmq_LIB_DIRS}
+    ${pos_LIB_DIRS}
+    ${comm_LIB_DIRS}
+    ${hibag_LIB_DIRS}
+    ${ipc_LIB_DIRS}
+    ${rte_LIB_DIRS}
+    ${base_LIB_DIRS}
+    ${common_LIB_DIRS}
+    ${ffmpeg_LIB_DIRS}
+    ${class_loader_LIB_DIRS}
+    ${easy_profiler_LIB_DIRS}
+)
+message("easy ${easy_profiler_LIB_DIRS}")
+set(PKG_LIBRARIES ${common_LIBS} ${hibag_LIBS} ${log_LIBS} ${pos_LIBS} ${error_relation_LIBS} ${base_LIBS} ${protobuf_LIBS} ${boost_LIBS} ${opencv_LIBS} ${easy_profiler_LIBS} ${jsoncpp_LIBS} ${ffmpeg_LIBS} ${pcl_LIBS} ${glog_LIBS})
+
+set(PROTOBUF_IMPORT_DIRS 
+	${common_MAIN_DIR}/proto/common
+	${common_MAIN_DIR}/proto/map 
+	${common_MAIN_DIR}/proto/Planning
+	${common_MAIN_DIR}/proto/Perception
+	${common_MAIN_DIR}/proto/Routing 
+	${common_MAIN_DIR}/proto/Control 
+	${common_MAIN_DIR}/proto/Sensor
+	${common_MAIN_DIR}/proto/Routing
+	${common_MAIN_DIR}/proto/Perception
+    ${base_MAIN_DIR}/proto/
+)
+
+message("common_MAIN_DIR :  ${common_MAIN_DIR}")
+include_directories(${common_MAIN_DIR}/proto/)
+# set(proto_gen_folder ${CMAKE_CURRENT_BINARY_DIR}/debug)
+file(GLOB PROTO_FILES    ${CMAKE_SOURCE_DIR}/test/proto/*.proto)
+message("debug proto : ${PROTO_FILES}")
+PROTOBUF_GENERATE_CPP(${proto_gen_folder} PROTO_SRCS PROTO_HDRS "${PROTO_FILES}")
+file(GLOB DEBUG_SRCS  ${proto_gen_folder}/*.cpp)
+add_library(pnc_debug SHARED ${PROTO_SRCS})
+target_link_libraries(pnc_debug ${PKG_LIBRARIES})
+
+file(GLOB_RECURSE GTEST_CPP
+${CMAKE_SOURCE_DIR}/gtest/src/utility/*.cpp
+${CMAKE_SOURCE_DIR}/gtest/src/slot_fusion/*.cpp)
+# 设置代码覆盖率的相关参数
+
+include_directories(parking_fusion_test
+${CMAKE_SOURCE_DIR}/modules/parking_fusion/src/
+${CMAKE_SOURCE_DIR}/modules/parking_fusion/interface/
+)
+
+install(TARGETS parking_fusion_test
+ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)

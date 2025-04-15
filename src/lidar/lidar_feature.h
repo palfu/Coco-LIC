@@ -23,85 +23,79 @@
 #include <utils/mypcl_cloud_type.h>
 #include <yaml-cpp/yaml.h>
 
-namespace cocolic
-{
+namespace cocolic {
 
-  struct LiDARCloud
-  {
+struct LiDARCloud {
     LiDARCloud() : timestamp(0), time_max(0), full_cloud(new PosCloud) {}
 
     int64_t timestamp;
-    int64_t time_max; // [timestamp, time_max] full_features
+    int64_t time_max;  // [timestamp, time_max] full_features
 
     PosCloud::Ptr full_cloud;
-  };
+};
 
-  struct LiDARFeature : public LiDARCloud
-  {
-    LiDARFeature()
-        : corner_features(new PosCloud), surface_features(new PosCloud) {}
+struct LiDARFeature : public LiDARCloud {
+    LiDARFeature() : corner_features(new PosCloud), surface_features(new PosCloud) {}
 
     //
     LiDARFeature(const LiDARFeature &fea)
     {
-      timestamp = fea.timestamp;
-      time_max = fea.time_max;
-      corner_features = PosCloud::Ptr(new PosCloud);
-      surface_features = PosCloud::Ptr(new PosCloud);
-      full_cloud = PosCloud::Ptr(new PosCloud);
+        timestamp        = fea.timestamp;
+        time_max         = fea.time_max;
+        corner_features  = PosCloud::Ptr(new PosCloud);
+        surface_features = PosCloud::Ptr(new PosCloud);
+        full_cloud       = PosCloud::Ptr(new PosCloud);
 
-      *corner_features = *fea.corner_features;
-      *surface_features = *fea.surface_features;
-      *full_cloud = *fea.full_cloud;
+        *corner_features  = *fea.corner_features;
+        *surface_features = *fea.surface_features;
+        *full_cloud       = *fea.full_cloud;
     }
 
     LiDARFeature &operator=(const LiDARFeature &fea)
     {
-      if (this != &fea)
-      {
-        LiDARFeature temp(fea);
-        this->timestamp = temp.timestamp;
-        this->time_max = temp.time_max;
+        if (this != &fea) {
+            LiDARFeature temp(fea);
+            this->timestamp = temp.timestamp;
+            this->time_max  = temp.time_max;
 
-        PosCloud::Ptr p_temp = temp.corner_features;
-        temp.corner_features = this->corner_features;
-        this->corner_features = p_temp;
+            PosCloud::Ptr p_temp  = temp.corner_features;
+            temp.corner_features  = this->corner_features;
+            this->corner_features = p_temp;
 
-        p_temp = temp.surface_features;
-        temp.surface_features = this->surface_features;
-        this->surface_features = p_temp;
+            p_temp                 = temp.surface_features;
+            temp.surface_features  = this->surface_features;
+            this->surface_features = p_temp;
 
-        p_temp = temp.full_cloud;
-        temp.full_cloud = this->full_cloud;
-        this->full_cloud = p_temp;
-      }
+            p_temp           = temp.full_cloud;
+            temp.full_cloud  = this->full_cloud;
+            this->full_cloud = p_temp;
+        }
 
-      return *this;
+        return *this;
     }
 
     void Clear()
     {
-      timestamp = 0;
-      time_max = 0;
-      corner_features->clear();
-      surface_features->clear();
-      full_cloud->clear();
+        timestamp = 0;
+        time_max  = 0;
+        corner_features->clear();
+        surface_features->clear();
+        full_cloud->clear();
     }
 
     PosCloud::Ptr corner_features;
     PosCloud::Ptr surface_features;
-  };
+};
 
-  struct LiDARFeatureParam
-  {
+struct LiDARFeatureParam {
     LiDARFeatureParam(const YAML::Node &node)
     {
-      edge_threshold = node["edge_threshold"].as<float>();
-      surf_threshold = node["surf_threshold"].as<float>();
-      odometry_surface_leaf_size = node["odometry_surface_leaf_size"].as<float>();
+        edge_threshold             = node["edge_threshold"].as<float>();
+        surf_threshold             = node["surf_threshold"].as<float>();
+        odometry_surface_leaf_size = node["odometry_surface_leaf_size"].as<float>();
 
-      min_distance = node["min_distance"].as<double>();
-      max_distance = node["max_distance"].as<double>();
+        min_distance = node["min_distance"].as<double>();
+        max_distance = node["max_distance"].as<double>();
     }
 
     /// LOAM feature threshold
@@ -112,30 +106,25 @@ namespace cocolic
     double max_distance;
 
     float odometry_surface_leaf_size;
-  };
+};
 
-  enum GeometryType
-  {
-    Line = 0,
-    Plane
-  };
+enum GeometryType { Line = 0, Plane };
 
-  struct PointCorrespondence
-  {
+struct PointCorrespondence {
     int64_t t_point;
     int64_t t_map;
     double scale;
     Eigen::Vector3d point;
-    Eigen::Vector3d point_raw; // 
+    Eigen::Vector3d point_raw;  //
 
     GeometryType geo_type;
 
-    // 
+    //
     Eigen::Vector4d geo_plane;
 
-    // 
+    //
     Eigen::Vector3d geo_normal;
     Eigen::Vector3d geo_point;
-  };
+};
 
-} // namespace cocolic
+}  // namespace cocolic

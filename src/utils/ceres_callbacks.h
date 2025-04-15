@@ -26,73 +26,73 @@
 namespace cocolic {
 
 class CheckStateCallback : public ceres::IterationCallback {
- public:
-  CheckStateCallback() : iteration_(0u) {}
+public:
+    CheckStateCallback() : iteration_(0u) {}
 
-  ~CheckStateCallback() {}
+    ~CheckStateCallback() {}
 
-  void addCheckState(const std::string& description, size_t block_size,
-                     double* param_block) {
-    parameter_block_descr.push_back(description);
-    parameter_block_sizes.push_back(block_size);
-    parameter_blocks.push_back(param_block);
-  }
+    void addCheckState(const std::string& description, size_t block_size, double* param_block)
+    {
+        parameter_block_descr.push_back(description);
+        parameter_block_sizes.push_back(block_size);
+        parameter_blocks.push_back(param_block);
+    }
 
 #if true
-  ceres::CallbackReturnType operator()(const ceres::IterationSummary& summary) {
-    if (iteration_ == 0) {
-      auto&& log = COMPACT_GOOGLE_LOG_INFO;
-      log.stream() << "Iteration ";
-      for (size_t i = 0; i < parameter_block_descr.size(); ++i) {
-        log.stream() << parameter_block_descr.at(i) << " ";
-      }
-      log.stream() << "\n";
-    }
-    
-    auto&& log = COMPACT_GOOGLE_LOG_INFO;
-    log.stream() << iteration_ << " ";
-    for (size_t i = 0; i < parameter_block_descr.size(); ++i) {
-      for (size_t k = 0; k < parameter_block_sizes.at(i); ++k)
-        log.stream() << parameter_blocks.at(i)[k] << " ";
-    }
+    ceres::CallbackReturnType operator()(const ceres::IterationSummary& summary)
+    {
+        if (iteration_ == 0) {
+            auto&& log = COMPACT_GOOGLE_LOG_INFO;
+            log.stream() << "Iteration ";
+            for (size_t i = 0; i < parameter_block_descr.size(); ++i) {
+                log.stream() << parameter_block_descr.at(i) << " ";
+            }
+            log.stream() << "\n";
+        }
 
-    log.stream() << "\n";
+        auto&& log = COMPACT_GOOGLE_LOG_INFO;
+        log.stream() << iteration_ << " ";
+        for (size_t i = 0; i < parameter_block_descr.size(); ++i) {
+            for (size_t k = 0; k < parameter_block_sizes.at(i); ++k) log.stream() << parameter_blocks.at(i)[k] << " ";
+        }
 
-    ++iteration_;
-    return ceres::SOLVER_CONTINUE;
-  }
+        log.stream() << "\n";
+
+        ++iteration_;
+        return ceres::SOLVER_CONTINUE;
+    }
 #else
-  ceres::CallbackReturnType operator()(const ceres::IterationSummary& summary) {
-    auto&& log = COMPACT_GOOGLE_LOG_INFO;
+    ceres::CallbackReturnType operator()(const ceres::IterationSummary& summary)
+    {
+        auto&& log = COMPACT_GOOGLE_LOG_INFO;
 
-    if (iteration_ == 0) {
-      std::cout << "Iteration ";
-      for (size_t i = 0; i < parameter_block_descr.size(); ++i) {
-        std::cout << parameter_block_descr.at(i) << " ";
-      }
-      std::cout << "\n";
+        if (iteration_ == 0) {
+            std::cout << "Iteration ";
+            for (size_t i = 0; i < parameter_block_descr.size(); ++i) {
+                std::cout << parameter_block_descr.at(i) << " ";
+            }
+            std::cout << "\n";
+        }
+
+        std::cout << iteration_ << " ";
+        for (size_t i = 0; i < parameter_block_descr.size(); ++i) {
+            for (size_t k = 0; k < parameter_block_sizes.at(i); ++k) std::cout << parameter_blocks.at(i)[k] << " ";
+        }
+
+        std::cout << "\n";
+
+        ++iteration_;
+        return ceres::SOLVER_CONTINUE;
     }
-
-    std::cout << iteration_ << " ";
-    for (size_t i = 0; i < parameter_block_descr.size(); ++i) {
-      for (size_t k = 0; k < parameter_block_sizes.at(i); ++k)
-        std::cout << parameter_blocks.at(i)[k] << " ";
-    }
-
-    std::cout << "\n";
-
-    ++iteration_;
-    return ceres::SOLVER_CONTINUE;
-  }
 #endif
 
- private:
-  std::vector<std::string> parameter_block_descr;
-  std::vector<size_t> parameter_block_sizes;
-  std::vector<double*> parameter_blocks;
+private:
+    std::vector<std::string> parameter_block_descr;
+    std::vector<size_t> parameter_block_sizes;
+    std::vector<double*> parameter_blocks;
 
-  // Count iterations locally
-  size_t iteration_;
+    // Count iterations locally
+    size_t iteration_;
 };
 
 }  // namespace cocolic

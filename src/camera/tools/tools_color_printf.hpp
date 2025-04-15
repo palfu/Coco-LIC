@@ -61,7 +61,7 @@ Dr. Fu Zhang < fuzhang@hku.hk >.
 // const std::string _tools_color_printf_version = "V1.0";
 // const std::string _tools_color_printf_info = "[Init]: Add macros, add scope_color()";
 const std::string _tools_color_printf_version = "V1.2";
-const std::string _tools_color_printf_info = "[Enh]: Add delete lines, ANSI_SCREEN_FLUSH";
+const std::string _tools_color_printf_info    = "[Enh]: Add delete lines, ANSI_SCREEN_FLUSH";
 using std::cout;
 using std::endl;
 // clang-format off
@@ -120,17 +120,10 @@ using std::endl;
 #endif
 // clang-format on
 
-struct _Scope_color
-{
-    _Scope_color( const char * color )
-    {
-        cout << color;
-    }
+struct _Scope_color {
+    _Scope_color(const char* color) { cout << color; }
 
-    ~_Scope_color()
-    {
-        cout << ANSI_COLOR_RESET;
-    }
+    ~_Scope_color() { cout << ANSI_COLOR_RESET; }
 };
 
 #define scope_color(a) _Scope_color _scope(a);

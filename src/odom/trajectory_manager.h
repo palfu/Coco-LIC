@@ -25,57 +25,53 @@
 #include <odom/factor/analytic_diff/marginalization_factor.h>
 #include <utils/opt_weight.h>
 
-namespace cocolic
-{
+namespace cocolic {
 
-  struct TimeParam
-  {
+struct TimeParam {
     TimeParam()
     {
-      traj_active = -1;
-      for (int i = 0; i < 2; ++i)
-      {
-        lio_imu_time[i] = -1;
-        lio_imu_idx[i] = 0;
+        traj_active = -1;
+        for (int i = 0; i < 2; ++i) {
+            lio_imu_time[i] = -1;
+            lio_imu_idx[i]  = 0;
 
-        lio_map_imu_time[i] = -1;
-        lio_map_imu_idx[i] = 0;
+            lio_map_imu_time[i] = -1;
+            lio_map_imu_idx[i]  = 0;
 
-        last_scan[i] = -1;
-        cur_scan[i] = -1;
-        visual_window[i] = -1;
-      }
-      last_bias_time = 0;
-      cur_bias_time = 0;
+            last_scan[i]     = -1;
+            cur_scan[i]      = -1;
+            visual_window[i] = -1;
+        }
+        last_bias_time = 0;
+        cur_bias_time  = 0;
     }
 
     void UpdateCurScan(int64_t scan_time_min, int64_t scan_time_max)
     {
-      last_scan[0] = cur_scan[0];
-      last_scan[1] = cur_scan[1];
+        last_scan[0] = cur_scan[0];
+        last_scan[1] = cur_scan[1];
 
-      cur_scan[0] = scan_time_min;
-      cur_scan[1] = scan_time_max;
+        cur_scan[0] = scan_time_min;
+        cur_scan[1] = scan_time_max;
     }
 
-    int64_t lio_imu_time[2]; 
-    int lio_imu_idx[2];      
+    int64_t lio_imu_time[2];
+    int lio_imu_idx[2];
 
     double lio_map_imu_time[2];
     int lio_map_imu_idx[2];
 
-    double traj_active;     
-    int64_t last_scan[2];  
-    int64_t cur_scan[2];   
+    double traj_active;
+    int64_t last_scan[2];
+    int64_t cur_scan[2];
     double visual_window[2];
 
     int64_t last_bias_time;
     int64_t cur_bias_time;
-  };
+};
 
-  class TrajectoryManager
-  {
-  public:
+class TrajectoryManager {
+public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
     typedef std::shared_ptr<TrajectoryManager> Ptr;
@@ -98,17 +94,16 @@ namespace cocolic
     Eigen::aligned_vector<PoseData> absolute_datas_with_noise_;
     Eigen::aligned_vector<PoseData> relative_datas_with_noise_;
 
-    void InitFactorInfo(
-        const ExtrinsicParam &Ep_CtoI, const ExtrinsicParam &Ep_LtoI,
-        const double image_feature_weight = 0,
-        const Eigen::Vector3d &local_velocity_weight = Eigen::Vector3d::Zero());
+    void InitFactorInfo(const ExtrinsicParam &Ep_CtoI,
+                        const ExtrinsicParam &Ep_LtoI,
+                        const double image_feature_weight            = 0,
+                        const Eigen::Vector3d &local_velocity_weight = Eigen::Vector3d::Zero());
 
     void SetTrajectory(Trajectory::Ptr trajectory) { trajectory_ = trajectory; }
 
     void SetSystemState(const SystemState &sys_state, double distance0);
 
-    void SetOriginalPose(Eigen::Quaterniond q,
-                         Eigen::Vector3d p = Eigen::Vector3d::Zero());
+    void SetOriginalPose(Eigen::Quaterniond q, Eigen::Vector3d p = Eigen::Vector3d::Zero());
 
     void AddIMUData(const IMUData &data);
 
@@ -122,34 +117,29 @@ namespace cocolic
 
     void PropagateTrajectory(double scan_time_min, double scan_time_max, double t_add, bool non_uniform);
 
-    void PredictTrajectory(int64_t scan_time_min, int64_t scan_time_max,
-                           int64_t traj_max_time_ns, int knot_add_num, bool non_uniform);
+    void PredictTrajectory(int64_t scan_time_min, int64_t scan_time_max, int64_t traj_max_time_ns, int knot_add_num, bool non_uniform);
 
-    void UpdateLICPrior(
-        const Eigen::aligned_vector<PointCorrespondence> &point_corrs);
+    void UpdateLICPrior(const Eigen::aligned_vector<PointCorrespondence> &point_corrs);
 
     void ClearLVIPrior()
     {
-      lidar_marg_info = nullptr;
-      lidar_prior_ctrl_id = std::make_pair(0, 0);
-      lidar_marg_parameter_blocks.clear();
+        lidar_marg_info     = nullptr;
+        lidar_prior_ctrl_id = std::make_pair(0, 0);
+        lidar_marg_parameter_blocks.clear();
     }
 
-    bool UpdateTrajectoryWithLIC(
-        int lidar_iter, int64_t img_time_stamp,
-        const Eigen::aligned_vector<PointCorrespondence> &point_corrs,
-        const Eigen::aligned_vector<Eigen::Vector3d> &pnp_3ds,
-        const Eigen::aligned_vector<Eigen::Vector2d> &pnp_2ds,
-        const int iteration = 50);
+    bool UpdateTrajectoryWithLIC(int lidar_iter,
+                                 int64_t img_time_stamp,
+                                 const Eigen::aligned_vector<PointCorrespondence> &point_corrs,
+                                 const Eigen::aligned_vector<Eigen::Vector3d> &pnp_3ds,
+                                 const Eigen::aligned_vector<Eigen::Vector2d> &pnp_2ds,
+                                 const int iteration = 50);
 
     void UpdateLiDARAttribute(double scan_time_min, double scan_time_max);
 
     void Log(std::string descri) const;
 
-    const ImuStateEstimator::Ptr GetIMUStateEstimator() const
-    {
-      return imu_state_estimator_;
-    }
+    const ImuStateEstimator::Ptr GetIMUStateEstimator() const { return imu_state_estimator_; }
 
     void ExtendTrajectory(int64_t max_time_ns);
 
@@ -158,9 +148,9 @@ namespace cocolic
 
     IMUBias GetLatestBias() const
     {
-      IMUBias bias;
-      bias = all_imu_bias_.rbegin()->second;
-      return bias;
+        IMUBias bias;
+        bias = all_imu_bias_.rbegin()->second;
+        return bias;
     }
 
     const VPointCloud &GetMargCtrlPoint() const { return marg_ctrl_point_; }
@@ -168,34 +158,30 @@ namespace cocolic
 
     Eigen::Quaterniond GetGlobalFrame() const
     {
-      Eigen::Vector3d z_axis = gravity_ / gravity_.norm();
-      Eigen::Vector3d e_1(1, 0, 0);
-      Eigen::Vector3d x_axis = e_1 - z_axis * z_axis.transpose() * e_1;
-      x_axis = x_axis / x_axis.norm();
-      Eigen::Matrix<double, 3, 1> y_axis =
-          Eigen::SkewSymmetric<double>(z_axis) * x_axis;
+        Eigen::Vector3d z_axis = gravity_ / gravity_.norm();
+        Eigen::Vector3d e_1(1, 0, 0);
+        Eigen::Vector3d x_axis             = e_1 - z_axis * z_axis.transpose() * e_1;
+        x_axis                             = x_axis / x_axis.norm();
+        Eigen::Matrix<double, 3, 1> y_axis = Eigen::SkewSymmetric<double>(z_axis) * x_axis;
 
-      Eigen::Matrix<double, 3, 3> Rot;
-      Rot.block<3, 1>(0, 0) = x_axis;
-      Rot.block<3, 1>(0, 1) = y_axis;
-      Rot.block<3, 1>(0, 2) = z_axis;
+        Eigen::Matrix<double, 3, 3> Rot;
+        Rot.block<3, 1>(0, 0) = x_axis;
+        Rot.block<3, 1>(0, 1) = y_axis;
+        Rot.block<3, 1>(0, 2) = z_axis;
 
-      Eigen::Matrix3d R_Map_To_G = Rot.inverse();
-      Eigen::Quaterniond q_MtoG(R_Map_To_G);
-      return q_MtoG;
+        Eigen::Matrix3d R_Map_To_G = Rot.inverse();
+        Eigen::Quaterniond q_MtoG(R_Map_To_G);
+        return q_MtoG;
     }
 
     bool verbose;
 
-    const std::map<int, double> &GetFeatureInvDepths() const
-    {
-      return fea_id_inv_depths_;
-    }
+    const std::map<int, double> &GetFeatureInvDepths() const { return fea_id_inv_depths_; }
 
     void SetDivisionParam(int division_coarse, int division_refine)
     {
-      division_coarse_ = division_coarse;
-      division_refine_ = division_refine;
+        division_coarse_ = division_coarse;
+        division_refine_ = division_refine;
     }
 
     int GetDivision() { return division_; }
@@ -204,16 +190,16 @@ namespace cocolic
 
     void SetProcessCurImg(bool flag) { process_cur_img_ = flag; }
 
-    void SetIntrinsic(const Eigen::Matrix3d& K) { K_ = K; }
+    void SetIntrinsic(const Eigen::Matrix3d &K) { K_ = K; }
 
-  private:
+private:
     bool LocatedInFirstSegment(double cur_t) const
     {
-      size_t knot_idx = trajectory_->GetCtrlIndexNURBS(cur_t * S_TO_NS) - 3;
-      if (knot_idx < SplineOrder)
-        return true;
-      else
-        return false;
+        size_t knot_idx = trajectory_->GetCtrlIndexNURBS(cur_t * S_TO_NS) - 3;
+        if (knot_idx < SplineOrder)
+            return true;
+        else
+            return false;
     }
 
     void UpdateIMUInlio();
@@ -224,14 +210,15 @@ namespace cocolic
 
     void InitTrajWithPropagation();
 
-    void TranfromTraj4DoF(double t_min, double t_max, const Eigen::Matrix3d &R0,
-                          const Eigen::Vector3d &t0, bool apply = true);
+    void TranfromTraj4DoF(double t_min, double t_max, const Eigen::Matrix3d &R0, const Eigen::Vector3d &t0, bool apply = true);
 
-    void TranfromTraj4DoF(double t_min, double t_max,
+    void TranfromTraj4DoF(double t_min,
+                          double t_max,
                           const Eigen::Matrix3d &R_bef,
                           const Eigen::Vector3d &p_bef,
                           const Eigen::Matrix3d &R_aft,
-                          const Eigen::Vector3d &p_aft, bool apply = true);
+                          const Eigen::Vector3d &p_aft,
+                          bool apply = true);
 
     PoseData original_pose_;
 
@@ -241,11 +228,11 @@ namespace cocolic
     // State
     TimeParam tparam_;
 
-    OptWeight opt_weight_;
-
     Eigen::Vector3d gravity_;
 
+    OptWeight opt_weight_;
     Trajectory::Ptr trajectory_;
+    int64_t cur_img_time_;
 
     ImuStateEstimator::Ptr imu_state_estimator_;
 
@@ -274,7 +261,6 @@ namespace cocolic
     int division_coarse_;
     int division_refine_;
 
-    int64_t cur_img_time_;
     bool process_cur_img_;
 
     Eigen::aligned_vector<Eigen::Vector3d> v_points_;
@@ -282,14 +268,14 @@ namespace cocolic
 
     Eigen::Matrix3d K_;
 
-  public:
+public:
     void ClearVisual()
     {
-      cur_img_time_ = -1;
-      process_cur_img_ = false;
-      v_points_.clear();
-      px_obss_.clear();
-    }  
-  };
+        cur_img_time_    = -1;
+        process_cur_img_ = false;
+        v_points_.clear();
+        px_obss_.clear();
+    }
+};
 
-} // namespace cocolic
+}  // namespace cocolic

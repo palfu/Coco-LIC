@@ -26,55 +26,50 @@
 /////////////
 
 namespace cocolic {
-
 enum MotionState {
-  start_motionless = 0,  /// 
-  uniform_motion,        /// 
-  moving,                /// 
-  motionless             /// 
+    start_motionless = 0,  ///
+    uniform_motion,        ///
+    moving,                ///
+    motionless             ///
 };
 
-// 
+//
 class ImuStateEstimator {
- public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-  typedef std::shared_ptr<ImuStateEstimator> Ptr;
+    typedef std::shared_ptr<ImuStateEstimator> Ptr;
 
-  ImuStateEstimator(const YAML::Node& node);
+    ImuStateEstimator(const YAML::Node& node);
 
-  void FeedIMUData(const IMUData& imu_data);
+    void FeedIMUData(const IMUData& imu_data);
 
-  // 
-  void Propagate(const IMUState& imu_state, double from_timestamp,
-                 double to_timestamp);
+    //
+    void Propagate(const IMUState& imu_state, double from_timestamp, double to_timestamp);
 
-  const IMUState& GetPropagateStartState() const {
-    return propagate_start_state_;
-  }
+    const IMUState& GetPropagateStartState() const { return propagate_start_state_; }
 
-  const IMUState& GetIMUState() const { return latest_state_; }
+    const IMUState& GetIMUState() const { return latest_state_; }
 
-  MotionState GetMotionState() const { return motion_state_; }
+    MotionState GetMotionState() const { return motion_state_; }
 
- private:
-  void UpdateMotionState(const IMUState& imu_state,
-                         const Eigen::aligned_vector<IMUData>& imu_cache);
+private:
+    void UpdateMotionState(const IMUState& imu_state, const Eigen::aligned_vector<IMUData>& imu_cache);
 
-  Eigen::aligned_vector<IMUData> imu_data_;
+    Eigen::aligned_vector<IMUData> imu_data_;
 
-  // 
-  IMUState propagate_start_state_;
+    //
+    IMUState propagate_start_state_;
 
-  /// 
-  IMUState latest_state_;
+    ///
+    IMUState latest_state_;
 
-  /// 
-  MotionState motion_state_;
+    ///
+    MotionState motion_state_;
 
-  double accel_excite_threshold_;
+    double accel_excite_threshold_;
 
-  double gyro_excite_threshold_;
+    double gyro_excite_threshold_;
 };
 
 }  // namespace cocolic

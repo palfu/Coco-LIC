@@ -53,14 +53,13 @@ Dr. Fu Zhang < fuzhang@hku.hk >.
 // This file aim at making captable between openCV 3.0 and openCV 4.0
 // TODO
 
-#if (CV_MAJOR_VERSION==4)
-    #define CV_FM_8POINT cv::FM_8POINT
-    #define CV_AA cv::LINE_AA
-    // "cv::COLOR_RGB2GRAY" @ openCV 4.0
-    // #define CV_RGB2GRAY 7 
-    #define CV_CAP_PROP_FRAME_HEIGHT CAP_PROP_FRAME_HEIGHT
-    #define CV_CAP_PROP_FRAME_WIDTH CAP_PROP_FRAME_WIDTH
-    #define CAP_PROP_FRAME_COUNT CAP_PROP_FPS
-    //#define CV_RGB2GRAY COLOR_RGB2GRAY
+#if (CV_MAJOR_VERSION == 4)
+#define CV_FM_8POINT cv::FM_8POINT
+#define CV_AA cv::LINE_AA
+// "cv::COLOR_RGB2GRAY" @ openCV 4.0
+// #define CV_RGB2GRAY 7
+#define CV_CAP_PROP_FRAME_HEIGHT CAP_PROP_FRAME_HEIGHT
+#define CV_CAP_PROP_FRAME_WIDTH CAP_PROP_FRAME_WIDTH
+#define CAP_PROP_FRAME_COUNT CAP_PROP_FPS
+//#define CV_RGB2GRAY COLOR_RGB2GRAY
 #endif
-

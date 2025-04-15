@@ -39,114 +39,105 @@ namespace cocolic {
 extern double GRAVITY_NORM;
 
 enum MODE {
-  Odometry_Offline = 1,  //
-  Odometry_Online,       //
+    Odometry_Offline = 1,  //
+    Odometry_Online,       //
 };
 
 struct VecData {
-  double timestamp;
-  Eigen::Vector3d p;
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+    double timestamp;
+    Eigen::Vector3d p;
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
 struct IMUData {
-  int64_t timestamp;
-  Eigen::Vector3d gyro;
-  Eigen::Vector3d accel;
-  SO3d orientation;
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+    int64_t timestamp;
+    Eigen::Vector3d gyro;
+    Eigen::Vector3d accel;
+    SO3d orientation;
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
 struct IMUBias {
-  IMUBias()
-      : gyro_bias(Eigen::Vector3d::Zero()),
-        accel_bias(Eigen::Vector3d::Zero()) {}
-  Eigen::Vector3d gyro_bias;
-  Eigen::Vector3d accel_bias;
+    IMUBias() : gyro_bias(Eigen::Vector3d::Zero()), accel_bias(Eigen::Vector3d::Zero()) {}
+    Eigen::Vector3d gyro_bias;
+    Eigen::Vector3d accel_bias;
 };
 
 struct IMUState {
-  IMUState()
-      : timestamp(0),
-        p(Eigen::Vector3d::Zero()),
-        v(Eigen::Vector3d::Zero()),
-        g(Eigen::Vector3d(0, 0, -9.8)) {}
-  int64_t timestamp;
-  Eigen::Vector3d p;  
-  Eigen::Vector3d v;  
-  Eigen::Quaterniond q;
-  IMUBias bias;
-  Eigen::Vector3d g;
+    IMUState() : timestamp(0), p(Eigen::Vector3d::Zero()), v(Eigen::Vector3d::Zero()), g(Eigen::Vector3d(0, 0, -9.8)) {}
+    int64_t timestamp;
+    Eigen::Vector3d p;
+    Eigen::Vector3d v;
+    Eigen::Quaterniond q;
+    IMUBias bias;
+    Eigen::Vector3d g;
 };
 
 struct PoseData {
-  PoseData() : timestamp(0), position(Eigen::Vector3d::Zero()) {}
+    PoseData() : timestamp(0), position(Eigen::Vector3d::Zero()) {}
 
-  int64_t timestamp;
-  Eigen::Vector3d position;
-  SO3d orientation;
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+    int64_t timestamp;
+    Eigen::Vector3d position;
+    SO3d orientation;
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
 struct SystemState : public IMUState {
-  SystemState() : name("") {}
+    SystemState() : name("") {}
 
-  SystemState(const IMUState& imu) {
-    timestamp = imu.timestamp;
-    p = imu.p;
-    v = imu.v;
-    q = imu.q;
-    bias = imu.bias;
-    g = imu.g;
+    SystemState(const IMUState& imu)
+    {
+        timestamp = imu.timestamp;
+        p         = imu.p;
+        v         = imu.v;
+        q         = imu.q;
+        bias      = imu.bias;
+        g         = imu.g;
 
-    name = "";
-  }
+        name = "";
+    }
 
-  std::string name;
+    std::string name;
 };
 
 struct ExtrinsicParam {
-  ExtrinsicParam()
-      : p(Eigen::Vector3d::Zero()),
-        q(Eigen::Quaterniond::Identity()),
-        t_offset_ns(0) {}
+    ExtrinsicParam() : p(Eigen::Vector3d::Zero()), q(Eigen::Quaterniond::Identity()), t_offset_ns(0) {}
 
-  // node["Extrinsics"]
-  void Init(const YAML::Node& node) {
-    if (!(node["time_offset"] && node["Trans"] && node["Rot"])) {
-      LOG(WARNING)
-          << "[ExtrinsicParam::Init] input yaml node has not parameters "
-             "of Extrinsics struct. Return without Initialziation.";
-      return;
+    // node["Extrinsics"]
+    void Init(const YAML::Node& node)
+    {
+        if (!(node["time_offset"] && node["Trans"] && node["Rot"])) {
+            LOG(WARNING) << "[ExtrinsicParam::Init] input yaml node has not parameters "
+                            "of Extrinsics struct. Return without Initialziation.";
+            return;
+        }
+
+        double t_s  = yaml::GetValue<double>(node, "time_offset", 0);
+        t_offset_ns = t_s * 1e9;
+        std::vector<double> params_vec;
+        yaml::GetValues<double>(node, "Trans", 3, params_vec);
+        p << params_vec[0], params_vec[1], params_vec[2];
+
+        yaml::GetValues<double>(node, "Rot", 9, params_vec);
+        Eigen::Matrix3d rot;
+        rot << params_vec[0], params_vec[1], params_vec[2], params_vec[3], params_vec[4], params_vec[5], params_vec[6], params_vec[7], params_vec[8];
+
+        q = Eigen::Quaterniond(rot);
+        q.normalized();
+        UpdateGroupParam();
     }
 
-    double t_s = yaml::GetValue<double>(node, "time_offset", 0);
-    t_offset_ns = t_s * 1e9;
-    std::vector<double> params_vec;
-    yaml::GetValues<double>(node, "Trans", 3, params_vec);
-    p << params_vec[0], params_vec[1], params_vec[2];
+    void UpdateGroupParam()
+    {
+        so3 = SO3d(q);
+        se3 = SE3d(so3, p);
+    }
 
-    yaml::GetValues<double>(node, "Rot", 9, params_vec);
-    Eigen::Matrix3d rot;
-    rot << params_vec[0], params_vec[1], params_vec[2], params_vec[3],
-        params_vec[4], params_vec[5], params_vec[6], params_vec[7],
-        params_vec[8];
-
-    q = Eigen::Quaterniond(rot);
-    q.normalized();
-    UpdateGroupParam();
-  }
-
-  void UpdateGroupParam() {
-    so3 = SO3d(q);
-    se3 = SE3d(so3, p);
-  }
-
-  Eigen::Vector3d p;
-  SO3d so3;             
-  Eigen::Quaterniond q; 
-  SE3d se3;
-  double t_offset_ns;
+    Eigen::Vector3d p;
+    SO3d so3;
+    Eigen::Quaterniond q;
+    SE3d se3;
+    double t_offset_ns;
 };
 
 }  // namespace cocolic

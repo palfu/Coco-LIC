@@ -19,48 +19,45 @@
 #pragma once
 
 #include <utils/yaml_utils.h>
-
 #include <utils/parameter_struct.h>
 #include <utils/eigen_utils.hpp>
 
 namespace cocolic {
 
 class IMUInitializer {
- public:
-  typedef std::shared_ptr<IMUInitializer> Ptr;
+public:
+    typedef std::shared_ptr<IMUInitializer> Ptr;
 
-  IMUInitializer(const YAML::Node& node);
+    IMUInitializer(const YAML::Node& node);
 
-  void FeedIMUData(const IMUData& imu_data);
+    void FeedIMUData(const IMUData& imu_data);
 
-  const Eigen::aligned_vector<IMUData>& GetIMUData() const {
-    return imu_datas_;
-  }
+    const Eigen::aligned_vector<IMUData>& GetIMUData() const { return imu_datas_; }
 
-  bool InitialIMUState();
+    bool InitialIMUState();
 
-  bool StaticInitialIMUState();
+    bool StaticInitialIMUState();
 
-  bool ActiveInitialIMUState();
+    bool ActiveInitialIMUState();
 
-  bool InitialDone() const { return initial_done_; }
+    bool InitialDone() const { return initial_done_; }
 
-  const IMUState GetIMUState() const { return imu_state_; }  // I0toG
+    const IMUState GetIMUState() const { return imu_state_; }  // I0toG
 
-  Eigen::Vector3d GetGravity() { return gravity_; }
+    Eigen::Vector3d GetGravity() { return gravity_; }
 
- private:
-  IMUState imu_state_;
+private:
+    IMUState imu_state_;
 
-  Eigen::Vector3d gravity_;  // (0, 0, 9.8)
+    Eigen::Vector3d gravity_;  // (0, 0, 9.8)
 
-  int64_t window_length_;
+    int64_t window_length_;
 
-  double imu_excite_threshold_;
+    double imu_excite_threshold_;
 
-  Eigen::aligned_vector<IMUData> imu_datas_;
+    Eigen::aligned_vector<IMUData> imu_datas_;
 
-  bool initial_done_;
+    bool initial_done_;
 };
 
 }  // namespace cocolic
